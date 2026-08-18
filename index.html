@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#3157d5">
+<meta name="description" content="SpendWise personal finance dashboard">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<title>SpendWise — Personal Finance</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand"><div class="logo">S</div><div><h1>SpendWise</h1><p>Personal finance, made clear.</p></div></div>
+    <div id="loginView">
+      <h2>Welcome back</h2><p class="auth-sub">Sign in to keep your finances organized.</p>
+      <form id="loginForm" class="auth-form">
+        <label>Email<input id="loginEmail" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••"></label>
+        <button class="btn primary full" type="submit">Sign in</button>
+      </form>
+      <button id="forgotBtn" class="text-btn">Forgot password?</button>
+      <p class="switch">New to SpendWise? <button id="showSignup" class="text-btn inline">Create account</button></p>
+      <div class="demo-note">Demo mode: your account is stored securely in this browser until cloud authentication is connected.</div>
+    </div>
+    <div id="signupView" hidden>
+      <h2>Create your account</h2><p class="auth-sub">Your personal finance dashboard starts here.</p>
+      <form id="signupForm" class="auth-form">
+        <label>Full name<input id="signupName" required placeholder="Your name"></label>
+        <label>Email<input id="signupEmail" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label>Password<input id="signupPassword" type="password" minlength="8" autocomplete="new-password" required placeholder="At least 8 characters"></label>
+        <label>Confirm password<input id="signupConfirm" type="password" minlength="8" required placeholder="Repeat password"></label>
+        <button class="btn primary full" type="submit">Create account</button>
+      </form>
+      <p class="switch">Already have an account? <button id="showLogin" class="text-btn inline">Sign in</button></p>
+    </div>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="brand"><div class="logo">S</div><div><h1>SpendWise</h1><p>Track • Understand • Cut • Save</p></div></div>
+  <div id="accountBox" class="account-box" hidden><span id="userInitial">U</span><div><b id="userName">User</b><small id="userEmail"></small></div><button id="logoutBtn" class="text-btn">Log out</button></div>
+  <div class="top-actions">
+    <button id="installBtn" class="btn primary" hidden>Install App</button>
+    <button id="exportBtn" class="btn secondary">Backup</button>
+    <label class="btn secondary file-btn">Restore<input id="importFile" type="file" accept=".json"></label>
+  </div>
+</header>
+
+<main class="container">
+  <section class="hero">
+    <div><h2>Your money, under control.</h2><p>Record income and spending, build a budget, find waste, and turn your numbers into decisions.</p></div>
+    <label class="month"><span>Month</span><input id="month" type="month"></label>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="dashboard">Dashboard</button>
+    <button class="tab" data-tab="transactions">Transactions</button>
+    <button class="tab" data-tab="budget">Budget</button>
+    <button class="tab" data-tab="recurring">Recurring</button>
+    <button class="tab" data-tab="goals">Goals</button>
+    <button class="tab" data-tab="analysis">Analysis</button>
+  </nav>
+
+  <section id="dashboard" class="tab-panel active">
+    <div class="stats">
+      <article class="stat"><span>Income</span><strong id="income">€0.00</strong><small>This month</small></article>
+      <article class="stat"><span>Spent</span><strong id="spent">€0.00</strong><small>This month</small></article>
+      <article class="stat"><span>Balance</span><strong id="balance">€0.00</strong><small>Income minus spending</small></article>
+      <article class="stat"><span>Potential savings</span><strong id="waste">€0.00</strong><small>Marked wants / unnecessary</small></article>
+    </div>
+
+    <div class="grid two">
+      <article class="card">
+        <div class="heading"><div><h3>Monthly snapshot</h3><p>How your money is being used.</p></div></div>
+        <div id="categoryChart" class="bars"></div>
+      </article>
+      <article class="card">
+        <div class="heading"><div><h3>What to cut first</h3><p>Highest-impact opportunities.</p></div></div>
+        <div id="recommendations" class="recommendations"></div>
+      </article>
+    </div>
+
+    <div class="grid three">
+      <article class="card"><h3>Budget status</h3><div class="big" id="budgetStatus">No budget set</div><div class="progress"><i id="budgetBar"></i></div><p id="budgetText" class="muted">Set your monthly budget in Budget.</p></article>
+      <article class="card"><h3>Savings goals</h3><div class="big" id="goalProgress">€0.00</div><p id="goalText" class="muted">No goals yet.</p></article>
+      <article class="card"><h3>Top spending</h3><div class="big" id="topCategory">—</div><p id="topCategoryAmount" class="muted">€0.00</p></article>
+    </div>
+  </section>
+
+  <section id="transactions" class="tab-panel">
+    <article class="card">
+      <div class="heading"><div><h3>Add transaction</h3><p>Enter income or an expense.</p></div></div>
+      <form id="txForm" class="form-grid">
+        <label>Type<select id="txType"><option value="expense">Expense</option><option value="income">Income</option></select></label>
+        <label>Date<input id="txDate" type="date" required></label>
+        <label>Amount<input id="txAmount" type="number" min="0.01" step="0.01" required></label>
+        <label>Category<select id="txCategory" required></select></label>
+        <label>Description<input id="txDescription" maxlength="100" placeholder="e.g. supermarket"></label>
+        <label>Payment<select id="txPayment"><option>Cash</option><option>Debit Card</option><option>Credit Card</option><option>Bank Transfer</option><option>Mobile Payment</option></select></label>
+        <label class="check"><input id="txWant" type="checkbox"><span><b>Want / unnecessary</b><small>Potential cut</small></span></label>
+        <label class="check"><input id="txRecurring" type="checkbox"><span><b>Recurring</b><small>Regular payment/income</small></span></label>
+        <button class="btn primary full" type="submit">Add transaction</button>
+      </form>
+    </article>
+    <article class="card">
+      <div class="heading"><div><h3>Transaction history</h3><p id="txCount"></p></div><input id="search" class="search" placeholder="Search..."></div>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Category</th><th>Amount</th><th>Flag</th><th></th></tr></thead><tbody id="txTable"></tbody></table></div>
+      <div id="txEmpty" class="empty">No transactions found.</div>
+    </article>
+  </section>
+
+  <section id="budget" class="tab-panel">
+    <div class="grid two">
+      <article class="card"><h3>Monthly budget</h3><p class="muted">Set the maximum amount you want to spend.</p>
+        <label>Budget amount<input id="budgetInput" type="number" min="0" step="0.01"></label>
+        <button id="saveBudget" class="btn primary full">Save budget</button>
+      </article>
+      <article class="card"><h3>Category limits</h3><p class="muted">Optional limits help identify overspending earlier.</p>
+        <div id="categoryLimits"></div>
+        <button id="saveLimits" class="btn primary full">Save category limits</button>
+      </article>
+    </div>
+  </section>
+
+  <section id="recurring" class="tab-panel">
+    <article class="card"><div class="heading"><div><h3>Recurring expenses & income</h3><p>Track bills and regular money movements.</p></div></div>
+      <form id="recurringForm" class="form-grid">
+        <label>Name<input id="rName" required placeholder="Rent"></label>
+        <label>Type<select id="rType"><option value="expense">Expense</option><option value="income">Income</option></select></label>
+        <label>Amount<input id="rAmount" type="number" min="0.01" step="0.01" required></label>
+        <label>Category<select id="rCategory"></select></label>
+        <label>Day of month<input id="rDay" type="number" min="1" max="31" value="1"></label>
+        <button class="btn primary full" type="submit">Add recurring item</button>
+      </form>
+      <div id="recurringList" class="list"></div>
+    </article>
+  </section>
+
+  <section id="goals" class="tab-panel">
+    <article class="card"><div class="heading"><div><h3>Savings goals</h3><p>Give your savings a purpose.</p></div></div>
+      <form id="goalForm" class="form-grid">
+        <label>Goal name<input id="gName" required placeholder="Emergency fund"></label>
+        <label>Target amount<input id="gTarget" type="number" min="1" step="0.01" required></label>
+        <label>Current saved<input id="gSaved" type="number" min="0" step="0.01" value="0"></label>
+        <button class="btn primary full" type="submit">Add goal</button>
+      </form>
+      <div id="goalList" class="goals"></div>
+    </article>
+  </section>
+
+  <section id="analysis" class="tab-panel">
+    <div class="grid two">
+      <article class="card"><h3>Monthly comparison</h3><p class="muted">Compare recent months.</p><div id="monthlyComparison" class="bars"></div></article>
+      <article class="card"><h3>Financial health</h3><div id="healthScore" class="score">0</div><p id="healthText" class="muted"></p></article>
+    </div>
+    <article class="card"><h3>Action plan</h3><div id="actionPlan" class="recommendations"></div></article>
+  </section>
+</main>
+
+<footer>SpendWise • Your data stays on your device unless you export/restore it.</footer>
+<script src="auth.js"></script>
+<script src="script.js"></script>
+</body></html>
