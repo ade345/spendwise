@@ -31,12 +31,16 @@ function clearAccount() {
 
 async function initAuth() {
   const { data: { session } } = await window.spendwiseSupabase.auth.getSession();
-  if (session?.user) setAccount(session.user);
-  else showAuth("login");
+  if (session?.user) {
+    setAccount(session.user);
+    if (typeof window.refreshSpendWise === "function") await window.refreshSpendWise();
+  } else showAuth("login");
 
   window.spendwiseSupabase.auth.onAuthStateChange((_event, session) => {
-    if (session?.user) setAccount(session.user);
-    else clearAccount();
+    if (session?.user) {
+      setAccount(session.user);
+      if (typeof window.refreshSpendWise === "function") await window.refreshSpendWise();
+    } else clearAccount();
   });
 }
 

@@ -18,6 +18,7 @@ async function monthTransactions() {
   const { data, error } = await window.spendwiseSupabase
     .from("transactions")
     .select("*")
+    .eq("user_id", user.id)
     .gte("transaction_date", start)
     .lt("transaction_date", end)
     .order("transaction_date", {ascending:false});
@@ -31,7 +32,34 @@ async function getBudget() {
   return Number(data?.amount || 0);
 }
 function fillCategories() {
-  ["txCategory","rCategory"].forEach(id => { const el=$(id); if(el) el.innerHTML=CATS.map(c=>`<option>${c}</option>`).join(""); });
+  const expenseOptions = CATS.map(c=>`<option value="${c}">${c}</option>`).join("");
+  const txCategory = $("txCategory");
+  if (txCategory) txCategory.innerHTML = expenseOptions;
+  const rCategory = $("rCategory");
+  if (rCategory) rCategory.innerHTML = expenseOptions;
+  syncTransactionTypeUI();
+}
+function syncTransactionTypeUI() {
+  const type = $("txType")?.value || "expense";
+  const category = $("txCategory");
+  const help = $("txCategoryHelp");
+  const want = $("txWant");
+  const wantWrap = $("txWantWrap");
+  if (!category) return;
+  if (type === "income") {
+    category.innerHTML = `<option value="Income">Income</option>`;
+    category.value = "Income";
+    category.disabled = true;
+    if (help) help.textContent = "Income is automatically classified as Income.";
+    if (want) { want.checked = false; want.disabled = true; }
+    if (wantWrap) wantWrap.style.opacity = ".55";
+  } else {
+    category.disabled = false;
+    category.innerHTML = CATS.map(c=>`<option value="${c}">${c}</option>`).join("");
+    if (help) help.textContent = "Choose a spending category.";
+    if (want) want.disabled = false;
+    if (wantWrap) wantWrap.style.opacity = "1";
+  }
 }
 async function renderCloud() {
   const tx = await monthTransactions();
@@ -57,14 +85,15 @@ window.refreshSpendWise = renderCloud;
 document.addEventListener("DOMContentLoaded",()=>{
   $("month").value=today().slice(0,7);$("txDate").value=today();fillCategories();
   $("month").onchange=renderCloud;
+  $("txType").onchange=syncTransactionTypeUI;
   $("txForm").onsubmit=async e=>{
     e.preventDefault();const user=await userOrNull();if(!user)return alert("Please sign in.");
     const {error}=await window.spendwiseSupabase.from("transactions").insert({
       user_id:user.id,type:$("txType").value,transaction_date:$("txDate").value,amount:Number($("txAmount").value),
-      category:$("txCategory").value,description:$("txDescription").value.trim(),payment_method:$("txPayment").value,
+      category:$("txType").value==="income" ? "Income" : $("txCategory").value,description:$("txDescription").value.trim(),payment_method:$("txPayment").value,
       is_want:$("txWant").checked,is_recurring:$("txRecurring").checked
     });
-    if(error)return alert(error.message);e.target.reset();$("txDate").value=today();renderCloud();
+    if(error)return alert(error.message);e.target.reset();$("txDate").value=today();syncTransactionTypeUI();renderCloud();
   };
   $("saveBudget").onclick=async()=>{
     const user=await userOrNull();if(!user)return alert("Please sign in.");
