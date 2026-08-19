@@ -118,6 +118,79 @@ function renderAnalysis(tx){
   actions.push(["Review weekly","Record transactions regularly so your recommendations stay current."]);
   $("actionPlan").innerHTML=actions.map(([a,b])=>`<div class="recommendation"><b>${a}</b><span>${b}</span></div>`).join("");
   $("monthlyComparison").innerHTML=`<div class="recommendation"><b>August spending: ${eur(spent)}</b><span>Income: ${eur(income)} · Current capacity: ${eur(capacity)} · Target savings: ${eur(target)}</span></div>`;
+  $("#monthlyComparison").innerHTML=`...`;
+
+   const topCategory = rows[0] || ["", 0];
+  const topOpportunity = opportunities[0] || null;
+
+  $("#analysisTotalSpend").textContent = eur(spent);
+
+  $("#analysisSpendMessage").textContent =
+    income > 0
+      ? `${((spent / income) * 100).toFixed(1)}% of your income is being spent.`
+      : "Add income to measure spending against income.";
+
+  $("#analysisTopCategory").textContent =
+    topCategory[0] || "No spending";
+
+  $("#analysisTopCategoryAmount").textContent =
+    topCategory[0]
+      ? eur(topCategory[1])
+      : "No spending recorded.";
+
+  const savingsDifference = capacity - target;
+
+  $("#analysisSavingsPosition").textContent =
+    eur(Math.abs(savingsDifference));
+
+  $("#analysisSavingsMessage").textContent =
+    savingsDifference >= 0
+      ? `${eur(savingsDifference)} above your savings target.`
+      : `${eur(Math.abs(savingsDifference))} below your savings target.`;
+
+  const potentialSaving = topOpportunity
+    ? Number(topOpportunity.suggested || 0)
+    : 0;
+
+  $("#analysisPotentialSaving").textContent =
+    eur(potentialSaving);
+
+  $("#analysisPotentialMessage").textContent =
+    topOpportunity
+      ? `Estimated reduction from ${topOpportunity.cat}.`
+      : "No reduction opportunity identified.";
+
+  if (topOpportunity) {
+    $("#analysisRecommendation").innerHTML = `
+      <b>Smart recommendation</b>
+      <p>
+        Review <strong>${topOpportunity.cat}</strong>.
+        A realistic reduction could free up approximately
+        <strong>${eur(potentialSaving)}</strong> each month.
+      </p>
+    `;
+  } else {
+    $("#analysisRecommendation").innerHTML = `
+      <b>Smart recommendation</b>
+      <p class="muted">
+        Your current spending pattern does not show a major reduction opportunity.
+      </p>
+    `;
+  }
+
+  $("#analysisAlerts").innerHTML = opportunities.length
+    ? opportunities.slice(0, 3).map((item, index) => `
+        <div class="recommendation">
+          <b>${index + 1}. ${item.cat}</b>
+          <span>
+            Spending: ${eur(item.amount)} ·
+            Suggested reduction: ${eur(item.suggested)}
+          </span>
+        </div>
+      `).join("")
+    : `<div class="empty">No spending alerts right now.</div>`;
+
+
 }
 async function renderCloud() {
   const tx = await monthTransactions();
