@@ -213,7 +213,53 @@
       <div id="opportunitySummary" class="recommendations"></div>
     </article>
   </div>
+<section class="card analysis-section">
+  <h3>Spending analysis</h3>
+  <p class="muted">A closer look at where your money is going.</p>
 
+  <div class="analysis-grid">
+
+    <div class="analysis-box">
+      <span class="analysis-label">Total spending</span>
+      <strong id="analysisTotalSpend">€0.00</strong>
+      <small id="analysisSpendMessage" class="muted">
+        Your spending this month.
+      </small>
+    </div>
+
+    <div class="analysis-box">
+      <span class="analysis-label">Largest category</span>
+      <strong id="analysisTopCategory">—</strong>
+      <small id="analysisTopCategoryAmount" class="muted">
+        No spending recorded.
+      </small>
+    </div>
+
+    <div class="analysis-box">
+      <span class="analysis-label">Savings position</span>
+      <strong id="analysisSavingsPosition">€0.00</strong>
+      <small id="analysisSavingsMessage" class="muted">
+        Compared with your savings target.
+      </small>
+    </div>
+
+    <div class="analysis-box">
+      <span class="analysis-label">Potential monthly saving</span>
+      <strong id="analysisPotentialSaving">€0.00</strong>
+      <small id="analysisPotentialMessage" class="muted">
+        Based on your highest-impact category.
+      </small>
+    </div>
+
+  </div>
+
+  <div class="analysis-recommendation" id="analysisRecommendation">
+    <b>Smart recommendation</b>
+    <p class="muted">SpendWise will generate a recommendation here.</p>
+  </div>
+
+  <div class="analysis-alerts" id="analysisAlerts"></div>
+</section>
   <article class="card">
     <h3>Monthly action plan</h3>
     <div id="actionPlan" class="recommendations"></div>
