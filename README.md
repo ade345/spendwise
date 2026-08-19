@@ -46,3 +46,7 @@ Before going live:
 - Test signup, email confirmation, login, adding/deleting transactions, and budgets.
 - Never expose secret/service-role keys.
 - Move production secrets/Stripe operations to a server or Edge Function.
+
+
+## v4 fix
+Adds working navigation tabs and transaction search, and bumps the service-worker cache.

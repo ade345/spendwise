@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const email = document.getElementById("loginEmail").value.trim();
     if (!email) return alert("Enter your email first.");
     const { error } = await window.spendwiseSupabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + window.location.pathname
+      redirectTo: "https://ade345.github.io/spendwise/"
     });
     alert(error ? error.message : "Password reset instructions have been sent if that email is registered.");
   };
@@ -70,7 +70,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const { data, error } = await window.spendwiseSupabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name } }
+      options: {
+        data: { full_name: name },
+        emailRedirectTo: "https://ade345.github.io/spendwise/"
+      }
     });
     if (error) return alert(error.message);
     if (data.session) {
