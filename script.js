@@ -1,26 +1,3 @@
-function setupTabs() {
-  const tabs = document.querySelectorAll(".tab");
-  const panels = document.querySelectorAll(".tab-panel");
-  tabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-      const target = tab.dataset.tab;
-      tabs.forEach(t => t.classList.toggle("active", t === tab));
-      panels.forEach(p => p.classList.toggle("active", p.id === target));
-      window.scrollTo({top: 0, behavior: "smooth"});
-    });
-  });
-}
-function setupSearch() {
-  const input = $("search");
-  if (!input) return;
-  input.addEventListener("input", () => {
-    const q = input.value.trim().toLowerCase();
-    document.querySelectorAll("#txTable tr").forEach(row => {
-      row.style.display = row.textContent.toLowerCase().includes(q) ? "" : "none";
-    });
-  });
-}
-
 const CATS = ["Food & Groceries","Eating Out","Transport","Housing","Utilities","Shopping","Entertainment","Health","Education","Family","Subscriptions","Debt","Other"];
 const $ = id => document.getElementById(id);
 const money = n => new Intl.NumberFormat("en-IE",{style:"currency",currency:"EUR"}).format(Number(n)||0);
@@ -78,8 +55,6 @@ async function renderCloud() {
 window.refreshSpendWise = renderCloud;
 
 document.addEventListener("DOMContentLoaded",()=>{
-  setupTabs();
-  setupSearch();
   $("month").value=today().slice(0,7);$("txDate").value=today();fillCategories();
   $("month").onchange=renderCloud;
   $("txForm").onsubmit=async e=>{

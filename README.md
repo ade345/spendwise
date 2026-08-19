@@ -48,5 +48,15 @@ Before going live:
 - Move production secrets/Stripe operations to a server or Edge Function.
 
 
-## v4 fix
-Adds working navigation tabs and transaction search, and bumps the service-worker cache.
+## v6 — Spending Analysis Engine
+SpendWise now calculates:
+- 20% monthly savings guideline from actual income
+- Current savings capacity (income minus spending)
+- Savings gap
+- Category share of income and spending
+- Conservative category-specific review opportunities
+- Want/unnecessary flags to personalize cut suggestions
+- A 50/30/20 starting plan
+- A financial-health score and action plan
+
+These are budgeting heuristics, not individualized financial advice.
