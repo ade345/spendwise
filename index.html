@@ -166,4 +166,33 @@
 <script src="config.js"></script>
 <script src="auth.js"></script>
 <script src="script.js"></script>
+
+<script>
+/* SpendWise navigation fallback: works even if an older cached script is present. */
+(function () {
+  function activate(id, button) {
+    document.querySelectorAll(".tab-panel").forEach(function (panel) {
+      panel.classList.toggle("active", panel.id === id);
+    });
+    document.querySelectorAll(".tabs .tab").forEach(function (tab) {
+      tab.classList.toggle("active", tab === button);
+    });
+  }
+  function bind() {
+    document.querySelectorAll(".tabs .tab").forEach(function (button) {
+      if (button.dataset.bound === "1") return;
+      button.dataset.bound = "1";
+      button.addEventListener("click", function (event) {
+        event.preventDefault();
+        activate(button.getAttribute("data-tab"), button);
+      });
+    });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bind);
+  } else {
+    bind();
+  }
+})();
+</script>
 </body></html>

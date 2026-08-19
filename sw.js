@@ -1,4 +1,4 @@
-const CACHE_NAME="spendwise-cloud-v4";
+const CACHE_NAME="spendwise-cloud-v5";
 const APP_FILES=["./","./index.html","./style.css","./script.js","./auth.js","./config.js","./manifest.webmanifest","./icon-192.png","./icon-512.png"];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_FILES)));self.skipWaiting();});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))));self.clients.claim();});
