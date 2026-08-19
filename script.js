@@ -192,9 +192,89 @@ function renderAnalysis(tx){
 
 
 }
-async function renderCloud() {
+async function renderMonthlySpendingChart() {
+  const chart = $("#monthlySpendingChart");
+  if (!chart) return;
+
+  const { data, error } = await window.spendwiseSupabase
+    .from("transactions")
+    .select("date, amount, type")
+    .order("date", { ascending: true });
+
+  if (error) {
+    chart.innerHTML =
+      `<div class="empty">Unable to load monthly spending.</div>`;
+    return;
+  }
+
+  const monthly = {};
+
+  (data || [])
+    .filter(t => t.type === "expense")
+    .forEach(t => {
+      const date = new Date(t.date);
+
+      if (Number.isNaN(date.getTime())) return;
+
+      const key =
+        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+      monthly[key] =
+        (monthly[key] || 0) + Number(t.amount || 0);
+    });
+
+  const months = Object.entries(monthly)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-12);
+
+  if (!months.length) {
+    chart.innerHTML =
+      `<div class="empty">No monthly spending data yet.</div>`;
+    return;
+  }
+
+  const maxSpend =
+    Math.max(...months.map(([, amount]) => amount), 1);
+
+  chart.innerHTML = months.map(([key, amount]) => {
+    const [year, month] = key.split("-");
+
+    const date = new Date(
+      Number(year),
+      Number(month) - 1,
+      1
+    );
+
+    const label = date.toLocaleDateString("en", {
+      month: "short",
+      year: "2-digit"
+    });
+
+    const height =
+      Math.max(4, (amount / maxSpend) * 100);
+
+    return `
+      <div class="monthly-bar-item">
+        <div class="monthly-bar-value">${eur(amount)}</div>
+
+        <div class="monthly-bar-track">
+          <div
+            class="monthly-bar-fill"
+            style="height:${height}%"
+            title="${label}: ${eur(amount)}">
+          </div>
+        </div>
+
+        <div class="monthly-bar-label">${label}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+  async function renderCloud() {
   const tx = await monthTransactions();
   renderAnalysis(tx);
+  await renderMonthlySpendingChart();
   const inc=tx.filter(t=>t.type==="income").reduce((s,t)=>s+Number(t.amount),0);
   const spent=tx.filter(t=>t.type==="expense").reduce((s,t)=>s+Number(t.amount),0);
   const waste=tx.filter(t=>t.type==="expense"&&t.is_want).reduce((s,t)=>s+Number(t.amount),0);
