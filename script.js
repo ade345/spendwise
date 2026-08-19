@@ -61,12 +61,72 @@ function syncTransactionTypeUI() {
     if (wantWrap) wantWrap.style.opacity = "1";
   }
 }
+
+const CUT_RATES={"Eating Out":0.25,"Shopping":0.20,"Entertainment":0.20,"Subscriptions":0.30,"Other":0.10,"Food & Groceries":0.08,"Transport":0.05};
+const NEED_CATEGORIES=new Set(["Housing","Utilities","Food & Groceries","Transport","Health","Education","Family","Debt"]);
+function eur(v){return money(v);}
+function renderAnalysis(tx){
+  const income=tx.filter(t=>t.type==="income").reduce((s,t)=>s+Number(t.amount||0),0);
+  const expenses=tx.filter(t=>t.type==="expense");
+  const spent=expenses.reduce((s,t)=>s+Number(t.amount||0),0);
+  const capacity=Math.max(0,income-spent), target=income*0.20, gap=Math.max(0,target-capacity);
+  const by={}; expenses.forEach(t=>by[t.category]=(by[t.category]||0)+Number(t.amount||0));
+  const rows=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+  const opportunities=rows.map(([cat,amount])=>{
+    const flagged=expenses.filter(t=>t.category===cat&&t.is_want).reduce((s,t)=>s+Number(t.amount||0),0);
+    const rate=CUT_RATES[cat]??0;
+    const suggested=flagged>0?flagged*0.35:amount*rate;
+    return {cat,amount,flagged,suggested,shareSpend:spent?amount/spent*100:0,shareIncome:income?amount/income*100:0};
+  }).filter(x=>x.suggested>0.5).sort((a,b)=>b.suggested-a.suggested);
+  const cutTotal=opportunities.reduce((s,x)=>s+x.suggested,0);
+  const recommended=Math.min(cutTotal, Math.max(0,gap>0?gap:cutTotal));
+
+  $("analysisTarget").textContent=eur(target);
+  $("analysisCapacity").textContent=eur(capacity);
+  $("analysisCuts").textContent=eur(recommended);
+  $("analysisGap").textContent=eur(gap);
+
+  $("categoryAnalysis").innerHTML=rows.length?rows.slice(0,8).map(([cat,amount])=>`<div class="analysis-row"><div class="analysis-head"><span>${cat}</span><span>${eur(amount)}</span></div><div class="analysis-meta"><span>${(income?amount/income*100:0).toFixed(1)}% of income</span><span>${(spent?amount/spent*100:0).toFixed(1)}% of spending</span></div><div class="analysis-bar"><div class="analysis-fill" style="width:${Math.min(100,spent?amount/spent*100:0)}%"></div></div></div>`).join(""):`<div class="empty">Add expenses to generate analysis.</div>`;
+
+  $("cutPlan").innerHTML=opportunities.length?opportunities.slice(0,5).map((x,i)=>{
+    const cls=x.suggested>Math.max(50,income*.08)?"cut-strong":x.suggested>Math.max(20,income*.03)?"cut-warning":"cut-good";
+    const reason=x.flagged?`You marked ${eur(x.flagged)} here as wants/unnecessary.`:`A conservative review rate was applied to this category.`;
+    return `<div class="recommendation ${cls}"><b>${i+1}. Review ${x.cat}</b><span>Potential reduction: <strong>${eur(x.suggested)}</strong>. ${reason}</span></div>`;
+  }).join(""):`<div class="empty">${income?"No discretionary cut opportunity is large enough to flag yet.":"Add income to calculate your savings plan."}</div>`;
+
+  const needs=expenses.filter(t=>NEED_CATEGORIES.has(t.category)).reduce((s,t)=>s+Number(t.amount||0),0);
+  const wants=expenses.filter(t=>t.is_want||!NEED_CATEGORIES.has(t.category)).reduce((s,t)=>s+Number(t.amount||0),0);
+  $("moneyPlan").innerHTML=`<div><span>Needs guideline</span><strong>${eur(income*.50)}</strong><small>Actual: ${eur(needs)}</small></div><div><span>Wants guideline</span><strong>${eur(income*.30)}</strong><small>Actual: ${eur(wants)}</small></div><div><span>Savings guideline</span><strong>${eur(target)}</strong><small>Current capacity: ${eur(capacity)}</small></div>`;
+
+  let score=0,msg="Add income to unlock your financial-health score.";
+  if(income){
+    score=100;
+    if(spent>income)score-=40;else if(spent>income*.9)score-=25;else if(spent>income*.8)score-=15;
+    if(capacity<target)score-=15;
+    if(opportunities.length)score-=Math.min(15,opportunities.length*3);
+    score=Math.max(0,Math.round(score));
+    msg=score>=80?"Strong month. Keep your savings habit and review your biggest discretionary categories.":score>=60?"Fair month. You have room to improve by controlling the highest-impact categories.":"Needs attention. Start with the largest non-essential expenses and protect a savings amount each month.";
+  }
+  $("healthScore").textContent=score;$("healthText").textContent=msg;
+
+  const actions=[];
+  if(!income)actions.push(["Add income","Enter your income so SpendWise can calculate what you can safely aim to save."]);
+  else if(gap>0)actions.push(["Close the savings gap",`You are ${eur(gap)} below the 20% starting savings target.`]);
+  if(opportunities[0])actions.push(["Start here",`Review ${opportunities[0].cat}. A conservative reduction is about ${eur(opportunities[0].suggested)}.`]);
+  if(spent>income&&income>0)actions.push(["Stop the overspend",`Spending is ${eur(spent-income)} above income.`]);
+  if(!expenses.some(t=>t.is_want))actions.push(["Mark wants","Flag purchases you could live without. This makes recommendations more personalized."]);
+  actions.push(["Review weekly","Record transactions regularly so your recommendations stay current."]);
+  $("actionPlan").innerHTML=actions.map(([a,b])=>`<div class="recommendation"><b>${a}</b><span>${b}</span></div>`).join("");
+  $("monthlyComparison").innerHTML=`<div class="recommendation"><b>August spending: ${eur(spent)}</b><span>Income: ${eur(income)} · Current capacity: ${eur(capacity)} · Target savings: ${eur(target)}</span></div>`;
+}
 async function renderCloud() {
   const tx = await monthTransactions();
+  renderAnalysis(tx);
   const inc=tx.filter(t=>t.type==="income").reduce((s,t)=>s+Number(t.amount),0);
   const spent=tx.filter(t=>t.type==="expense").reduce((s,t)=>s+Number(t.amount),0);
   const waste=tx.filter(t=>t.type==="expense"&&t.is_want).reduce((s,t)=>s+Number(t.amount),0);
-  $("income").textContent=money(inc);$("spent").textContent=money(spent);$("balance").textContent=money(inc-spent);$("waste").textContent=money(waste);
+  const autoReview=tx.filter(t=>t.type==="expense").reduce((s,t)=>s+Number(t.amount)*(CUT_RATES[t.category]||0),0);
+  $("income").textContent=money(inc);$("spent").textContent=money(spent);$("balance").textContent=money(inc-spent);$("waste").textContent=money(Math.max(waste,autoReview));
   const map={};tx.filter(t=>t.type==="expense").forEach(t=>map[t.category]=(map[t.category]||0)+Number(t.amount));
   const entries=Object.entries(map).sort((a,b)=>b[1]-a[1]),total=spent;
   $("categoryChart").innerHTML=entries.length?entries.map(([c,v])=>`<div><div class="bar-head"><span>${c}</span><b>${money(v)} · ${total?(v/total*100).toFixed(0):0}%</b></div><div class="bar-track"><div class="bar-fill" style="width:${total?v/total*100:0}%"></div></div></div>`).join(""):`<div class="empty">No expenses recorded.</div>`;
