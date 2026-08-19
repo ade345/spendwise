@@ -35,3 +35,14 @@ For production, replace the local demo authentication with a real managed authen
 Frontend PWA → Auth provider → Per-user database → Expense/budget/goal data.
 
 Do not store production passwords in localStorage. The demo layer is only for UI/testing.
+
+
+## Supabase connection
+
+This version is connected to the SpendWise Supabase project using the browser-safe publishable key. It uses Supabase Auth and the RLS-protected `transactions` and `budgets` tables.
+
+Before going live:
+- Verify email redirect URLs in Supabase Auth URL Configuration.
+- Test signup, email confirmation, login, adding/deleting transactions, and budgets.
+- Never expose secret/service-role keys.
+- Move production secrets/Stripe operations to a server or Edge Function.
