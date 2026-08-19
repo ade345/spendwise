@@ -81,9 +81,11 @@ async function renderCloud() {
   document.querySelectorAll(".delete").forEach(b=>b.onclick=async()=>{const {error}=await window.spendwiseSupabase.from("transactions").delete().eq("id",b.dataset.id);if(error)alert(error.message);else renderCloud()});
 }
 window.refreshSpendWise = renderCloud;
+window.forceCloudRefresh = async function(){ await renderCloud(); };
 
 document.addEventListener("DOMContentLoaded",()=>{
   $("month").value=today().slice(0,7);$("txDate").value=today();fillCategories();
+  setTimeout(()=>{ if(window.spendwiseUser) renderCloud(); }, 1200);
   $("month").onchange=renderCloud;
   $("txType").onchange=syncTransactionTypeUI;
   $("txForm").onsubmit=async e=>{
