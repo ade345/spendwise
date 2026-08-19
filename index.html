@@ -9,6 +9,9 @@
 <link rel="icon" href="icon-192.png">
 <title>SpendWise — Personal Finance (v10)</title>
 <link rel="stylesheet" href="style.css?v=11">
+<style>
+.whatif-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:12px;align-items:end}.whatif-grid label{display:flex;flex-direction:column;gap:7px;font-weight:700}.whatif-grid input{padding:12px;border:1px solid #dbe2ed;border-radius:10px;font:inherit}.whatif-result{padding:14px;border:1px solid #e2e7ef;border-radius:12px}.whatif-result span{display:block;color:#647087;font-size:12px}.whatif-result strong{display:block;font-size:20px;margin-top:5px}.analysis-row{padding:12px 0;border-bottom:1px solid #e7ebf2}.analysis-row:last-child{border-bottom:0}.analysis-head,.analysis-meta{display:flex;justify-content:space-between;gap:12px}.analysis-head{font-weight:800}.analysis-meta{color:#647087;font-size:12px;margin-top:5px}.analysis-bar{height:8px;background:#e9edf5;border-radius:99px;overflow:hidden;margin-top:8px}.analysis-fill{height:100%;background:#3157d5;border-radius:99px}.recommendation{padding:12px;border:1px solid #e2e7ef;border-radius:12px;margin:8px 0}.recommendation b{display:block;margin-bottom:4px}.recommendation span{display:block;color:#647087;font-size:13px;line-height:1.45}.cut-strong{border-left:4px solid #c64b4b;padding-left:12px}.cut-warning{border-left:4px solid #e08a2e;padding-left:12px}.cut-good{border-left:4px solid #3157d5;padding-left:12px}.money-plan{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.money-plan>div{padding:16px;border:1px solid #e2e7ef;border-radius:14px}.money-plan strong{display:block;font-size:22px;margin-top:6px}.health-item{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eef1f5;font-size:13px}.analysis-note{margin-top:18px}@media(max-width:800px){.whatif-grid{grid-template-columns:1fr 1fr}.money-plan{grid-template-columns:1fr}}@media(max-width:520px){.whatif-grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 
@@ -154,57 +157,78 @@
 
   <section id="analysis" class="tab-panel">
   <div class="stats">
-    <article class="stat"><span>Savings target</span><strong id="analysisTarget">€0.00</strong><small>20% of monthly income</small></article>
-    <article class="stat"><span>Current capacity</span><strong id="analysisCapacity">€0.00</strong><small>Income minus spending</small></article>
-    <article class="stat"><span>Potential cuts</span><strong id="analysisCuts">€0.00</strong><small>Conservative review estimate</small></article>
-    <article class="stat"><span>Target gap</span><strong id="analysisGap">€0.00</strong><small>Amount still needed to reach target</small></article>
+    <article class="stat"><span>Monthly income</span><strong id="analysisIncome">€0.00</strong><small>Money coming in this month</small></article>
+    <article class="stat"><span>Monthly spending</span><strong id="analysisSpent">€0.00</strong><small>All recorded expenses</small></article>
+    <article class="stat"><span>Savings rate</span><strong id="analysisSavingsRate">0%</strong><small>Share of income remaining</small></article>
+    <article class="stat"><span>Recommended savings</span><strong id="analysisTarget">€0.00</strong><small>20% starting guideline</small></article>
   </div>
-
-  <div class="grid two">
-    <article class="card">
-      <h3>Where your money is going</h3>
-      <p class="muted">Each category is compared with your income and total spending.</p>
-      <div id="categoryAnalysis" class="recommendations"></div>
-    </article>
-    <article class="card">
-      <h3>What to cut first</h3>
-      <p class="muted">SpendWise prioritizes the biggest realistic opportunities.</p>
-      <div id="cutPlan" class="recommendations"></div>
-    </article>
-  </div>
-
-  <article class="card">
-    <h3>Your monthly plan</h3>
-    <p class="muted">20% savings is a starting guideline. SpendWise uses your real income and spending to show the gap.</p>
-    <div id="moneyPlan" class="money-plan"></div>
-  </article>
 
   <div class="grid two">
     <article class="card">
       <h3>Financial health</h3>
       <div id="healthScore" class="score">0</div>
       <p id="healthText" class="muted"></p>
+      <div id="healthBreakdown" class="recommendations"></div>
     </article>
     <article class="card">
-      <h3>Monthly comparison</h3>
-      <p class="muted">Current month versus the previous month.</p>
-      <div id="monthlyComparison" class="recommendations"></div>
+      <h3>Monthly position</h3>
+      <div id="moneyPlan" class="money-plan"></div>
+    </article>
+  </div>
+
+  <div class="grid two">
+    <article class="card">
+      <h3>Where your money is going</h3>
+      <p class="muted">Spend is measured against both income and total expenses.</p>
+      <div id="categoryAnalysis" class="recommendations"></div>
+    </article>
+    <article class="card">
+      <h3>What to cut first</h3>
+      <p class="muted">Prioritized by impact, flexibility and category type.</p>
+      <div id="cutPlan" class="recommendations"></div>
     </article>
   </div>
 
   <article class="card">
-    <h3>Action plan</h3>
+    <h3>What-if savings calculator</h3>
+    <p class="muted">Choose a monthly savings target and SpendWise calculates the spending limit and gap.</p>
+    <div class="whatif-grid">
+      <label>Monthly savings goal
+        <input id="savingsGoalInput" type="number" min="0" step="10" value="400">
+      </label>
+      <div class="whatif-result"><span>Maximum spending</span><strong id="maxSpendResult">€0.00</strong></div>
+      <div class="whatif-result"><span>Current spending</span><strong id="currentSpendResult">€0.00</strong></div>
+      <div class="whatif-result"><span>Amount to cut</span><strong id="goalGapResult">€0.00</strong></div>
+    </div>
+    <div id="goalMessage" class="recommendation"></div>
+  </article>
+
+  <div class="grid two">
+    <article class="card">
+      <h3>Spending risk signals</h3>
+      <div id="riskSignals" class="recommendations"></div>
+    </article>
+    <article class="card">
+      <h3>Best opportunities</h3>
+      <div id="opportunitySummary" class="recommendations"></div>
+    </article>
+  </div>
+
+  <article class="card">
+    <h3>Monthly action plan</h3>
     <div id="actionPlan" class="recommendations"></div>
-    <p class="muted analysis-note">SpendWise uses budgeting heuristics for planning. Suggestions are not individualized financial advice.</p>
+    <p class="muted analysis-note">SpendWise uses transparent budgeting rules and your recorded transactions. Suggestions are planning estimates, not individualized financial advice.</p>
   </article>
 </section>
 </main>
 
 <footer>SpendWise • Your account data is securely stored in SpendWise cloud storage.</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=11"></script>
-<script src="auth.js?v=11"></script>
-<script src="script.js?v=11"></script>
+<script src="config.js?v=12"></script>
+<script src="auth.js?v=12"></script>
+<script src="script.js?v=12"></script>
+
+<script src="advanced-analysis.js?v=12"></script>
 
 <script>
 /* SpendWise navigation fallback: works even if an older cached script is present. */
