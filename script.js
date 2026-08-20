@@ -223,7 +223,7 @@ async function renderMonthlySpendingChart() {
   (data || [])
     .filter(t => t.type === "expense")
     .forEach(t => {
-      const date = new Date(t.date);
+      const date = new Date(t.transaction_date);
 
       if (Number.isNaN(date.getTime())) return;
 
