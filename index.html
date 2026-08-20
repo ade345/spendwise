@@ -66,6 +66,7 @@
     <button class="tab" data-tab="recurring">Recurring</button>
     <button class="tab" data-tab="goals">Goals</button>
     <button class="tab" data-tab="analysis">Analysis</button>
+    <button class="tab" data-tab="money">Money</button>
   </nav>
 
   <section id="dashboard" class="tab-panel active">
@@ -283,6 +284,177 @@
     <p class="muted analysis-note">SpendWise uses transparent budgeting rules and your recorded transactions. Suggestions are planning estimates, not individualized financial advice.</p>
   </article>
 </section>
+ 
+<section id="money" class="tab-panel">
+
+  <div class="grid two">
+
+    <!-- MONEY OVERVIEW -->
+    <article class="card">
+
+      <div class="heading">
+        <div>
+          <h3>Money overview</h3>
+          <p class="muted">
+            See how much money you currently have.
+          </p>
+        </div>
+      </div>
+
+      <div class="analysis-grid">
+
+        <div class="analysis-box">
+          <span class="analysis-label">Available money</span>
+          <strong id="totalAvailableMoney">€0.00</strong>
+          <small class="muted">
+            Bank, savings and cash
+          </small>
+        </div>
+
+        <div class="analysis-box">
+          <span class="analysis-label">Credit card debt</span>
+          <strong id="totalCreditCardDebt">€0.00</strong>
+          <small class="muted">
+            Current card balances
+          </small>
+        </div>
+
+        <div class="analysis-box">
+          <span class="analysis-label">Total debt</span>
+          <strong id="totalDebt">€0.00</strong>
+          <small class="muted">
+            Loans and credit cards
+          </small>
+        </div>
+
+        <div class="analysis-box">
+          <span class="analysis-label">Net position</span>
+          <strong id="netFinancialPosition">€0.00</strong>
+          <small class="muted">
+            Money minus debt
+          </small>
+        </div>
+
+      </div>
+
+    </article>
+
+
+    <!-- ADD ACCOUNT -->
+    <article class="card">
+
+      <div class="heading">
+        <div>
+          <h3>Add account</h3>
+          <p class="muted">
+            Add your current bank, card, savings or cash balance.
+          </p>
+        </div>
+      </div>
+
+      <form id="accountForm">
+
+        <label>
+          Account name
+
+          <input
+            id="accountName"
+            type="text"
+            placeholder="e.g. Main Bank Account"
+            required
+          >
+        </label>
+
+
+        <label>
+          Account type
+
+          <select id="accountType" required>
+            <option value="bank">Bank account</option>
+            <option value="debit_card">Debit card</option>
+            <option value="savings">Savings</option>
+            <option value="cash">Cash</option>
+            <option value="credit_card">Credit card</option>
+          </select>
+        </label>
+
+
+        <label>
+          Current balance
+
+          <input
+            id="accountBalance"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            required
+          >
+        </label>
+
+
+        <label>
+          Last 4 digits
+
+          <input
+            id="accountLastFour"
+            type="text"
+            inputmode="numeric"
+            maxlength="4"
+            placeholder="Optional"
+          >
+        </label>
+
+
+        <button
+          class="btn primary full"
+          type="submit"
+        >
+          Add account
+        </button>
+
+      </form>
+
+    </article>
+
+  </div>
+
+
+  <!-- ACCOUNTS LIST -->
+  <article class="card">
+
+    <div class="heading">
+
+      <div>
+        <h3>Your accounts</h3>
+
+        <p class="muted">
+          Your current balances and accounts.
+        </p>
+      </div>
+
+      <strong id="accountCount">
+        0 accounts
+      </strong>
+
+    </div>
+
+
+    <div
+      id="accountsList"
+      class="recommendations"
+    >
+
+      <div class="empty">
+        No accounts added yet.
+      </div>
+
+    </div>
+
+  </article>
+
+</section>
+
 </main>
 
 <footer>SpendWise • Your account data is securely stored in SpendWise cloud storage.</footer>
