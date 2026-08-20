@@ -81,10 +81,10 @@ function renderAnalysis(tx){
   const cutTotal=opportunities.reduce((s,x)=>s+x.suggested,0);
   const recommended=Math.min(cutTotal, Math.max(0,gap>0?gap:cutTotal));
 
-  $("analysisTarget").textContent=eur(target);
-  $("analysisCapacity").textContent=eur(capacity);
-  $("analysisCuts").textContent=eur(recommended);
-  $("analysisGap").textContent=eur(gap);
+ document.getElementById("analysisTarget").textContent = eur(target);
+document.getElementById("analysisCapacity").textContent = eur(capacity);
+document.getElementById("analysisStatus").textContent = eur(recommended);
+document.getElementById("analysisGap").textContent = eur(gap);
 
   $("categoryAnalysis").innerHTML=rows.length?rows.slice(0,8).map(([cat,amount])=>`<div class="analysis-row"><div class="analysis-head"><span>${cat}</span><span>${eur(amount)}</span></div><div class="analysis-meta"><span>${(income?amount/income*100:0).toFixed(1)}% of income</span><span>${(spent?amount/spent*100:0).toFixed(1)}% of spending</span></div><div class="analysis-bar"><div class="analysis-fill" style="width:${Math.min(100,spent?amount/spent*100:0)}%"></div></div></div>`).join(""):`<div class="empty">Add expenses to generate analysis.</div>`;
 
