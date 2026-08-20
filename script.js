@@ -554,6 +554,10 @@ async function updateLoanPlan() {
 
   const tx = await monthTransactions();
 
+  // ----------------------------------------------------------
+  // INCOME
+  // ----------------------------------------------------------
+
   const income = tx
     .filter(t => t.type === "income")
     .reduce(
@@ -561,28 +565,68 @@ async function updateLoanPlan() {
       0
     );
 
-  const expenses = tx
-    .filter(t => t.type === "expense");
 
-  const spending = expenses.reduce(
-    (sum, t) => sum + Number(t.amount || 0),
-    0
+  // ----------------------------------------------------------
+  // EXPENSES
+  // ----------------------------------------------------------
+
+  const expenses = tx.filter(
+    t => t.type === "expense"
   );
+
+
+  // Essential spending
+  // We deliberately exclude "Debt" here because the
+  // scheduled loan payment is calculated separately below.
+
+  const essentialSpending = expenses
+    .filter(t =>
+      NEED_CATEGORIES.has(t.category) &&
+      t.category !== "Debt"
+    )
+    .reduce(
+      (sum, t) => sum + Number(t.amount || 0),
+      0
+    );
+
+
+  // Discretionary spending
+  const discretionarySpending = expenses
+    .filter(t =>
+      !NEED_CATEGORIES.has(t.category)
+    )
+    .reduce(
+      (sum, t) => sum + Number(t.amount || 0),
+      0
+    );
+
+
+  // ----------------------------------------------------------
+  // ACTIVE LOANS
+  // ----------------------------------------------------------
 
   const { data: loans, error } =
     await window.spendwiseSupabase
       .from("loans")
-      .select("remaining_balance,monthly_payment,status")
+      .select(
+        "remaining_balance,monthly_payment,status"
+      )
       .eq("user_id", user.id);
 
   if (error) {
-    console.error("Unable to calculate loan plan:", error);
+    console.error(
+      "Unable to calculate loan plan:",
+      error
+    );
     return;
   }
 
+
   const activeLoans = (loans || []).filter(
-    loan => (loan.status || "active") === "active"
+    loan =>
+      (loan.status || "active") === "active"
   );
+
 
   const monthlyPayments = activeLoans.reduce(
     (sum, loan) =>
@@ -590,60 +634,116 @@ async function updateLoanPlan() {
     0
   );
 
-  /*
-    We don't recommend sending every remaining euro
-    toward debt.
 
-    SpendWise keeps a 20% income safety/savings target.
-  */
+  // ----------------------------------------------------------
+  // CASH-FLOW ANALYSIS
+  // ----------------------------------------------------------
 
+  // 20% of income is protected as a savings/safety buffer.
   const savingsBuffer = income * 0.20;
 
-  const availableAfterSpending =
-    Math.max(0, income - spending);
 
+  // Money remaining after essential spending.
+  const afterEssentials =
+    Math.max(
+      0,
+      income - essentialSpending
+    );
+
+
+  // Money remaining after discretionary spending.
+  const afterCurrentSpending =
+    Math.max(
+      0,
+      afterEssentials - discretionarySpending
+    );
+
+
+  // Money remaining after required loan payments.
   const afterLoanPayments =
-    Math.max(0, availableAfterSpending - monthlyPayments);
+    Math.max(
+      0,
+      afterCurrentSpending - monthlyPayments
+    );
 
+
+  // Money available for an additional loan payment
+  // while keeping the 20% safety/savings buffer.
   const potentialExtraPayment =
     Math.max(
       0,
       afterLoanPayments - savingsBuffer
     );
 
-  $("loanPlanIncome").textContent =
-    money(income);
 
-  $("loanPlanEssentials").textContent =
-    money(spending);
+  // ----------------------------------------------------------
+  // UPDATE SCREEN
+  // ----------------------------------------------------------
 
-  $("loanPlanPayments").textContent =
-    money(monthlyPayments);
+  const incomeEl =
+    $("loanPlanIncome");
 
-  $("potentialExtraLoanPayment").textContent =
-    money(potentialExtraPayment);
+  const essentialsEl =
+    $("loanPlanEssentials");
 
-  const message = $("loanPlanMessage");
+  const paymentsEl =
+    $("loanPlanPayments");
+
+  const extraEl =
+    $("potentialExtraLoanPayment");
+
+  if (incomeEl) {
+    incomeEl.textContent =
+      money(income);
+  }
+
+  if (essentialsEl) {
+    essentialsEl.textContent =
+      money(essentialSpending);
+  }
+
+  if (paymentsEl) {
+    paymentsEl.textContent =
+      money(monthlyPayments);
+  }
+
+  if (extraEl) {
+    extraEl.textContent =
+      money(potentialExtraPayment);
+  }
+
+
+  // ----------------------------------------------------------
+  // REPAYMENT MESSAGE
+  // ----------------------------------------------------------
+
+  const message =
+    $("loanPlanMessage");
 
   if (!message) return;
+
 
   if (!income) {
 
     message.innerHTML = `
       <b>Add your income first.</b>
+
       <span>
-        SpendWise needs your recorded income and spending
-        before estimating a safe additional loan payment.
+        SpendWise needs your recorded income and
+        spending before estimating a safe additional
+        loan payment.
       </span>
     `;
 
     return;
   }
 
+
   if (!activeLoans.length) {
 
     message.innerHTML = `
       <b>No active loans.</b>
+
       <span>
         Add a loan above to create a repayment plan.
       </span>
@@ -652,15 +752,25 @@ async function updateLoanPlan() {
     return;
   }
 
+
   if (potentialExtraPayment > 0) {
 
     message.innerHTML = `
-      <b>Potential extra payment: ${money(potentialExtraPayment)}</b>
+      <b>
+        Potential extra payment:
+        ${money(potentialExtraPayment)}
+      </b>
 
       <span>
-        After recorded spending, required loan payments
+        After essential spending of
+        ${money(essentialSpending)},
+        discretionary spending of
+        ${money(discretionarySpending)},
+        required loan payments of
+        ${money(monthlyPayments)},
         and a 20% income safety/savings buffer,
-        approximately ${money(potentialExtraPayment)}
+        approximately
+        ${money(potentialExtraPayment)}
         may be available for an additional payment.
       </span>
     `;
@@ -671,15 +781,14 @@ async function updateLoanPlan() {
       <b>Keep the scheduled payment for now.</b>
 
       <span>
-        Your current recorded income and spending do not
-        show enough additional capacity for an extra loan
-        payment while maintaining the safety buffer.
+        Your current income and spending do not show
+        enough additional capacity for an extra loan
+        payment while maintaining the 20% safety/savings
+        buffer.
       </span>
     `;
-
   }
 }
-
 
 // ============================================================
 // CONNECT LOAN FORM
