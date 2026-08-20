@@ -209,8 +209,8 @@ async function renderMonthlySpendingChart() {
 
   const { data, error } = await window.spendwiseSupabase
     .from("transactions")
-    .select("date, amount, type")
-    .order("date", { ascending: true });
+    .select("transaction_date, amount, type")
+.order("transaction_date", { ascending: true });
 
   if (error) {
     chart.innerHTML =
