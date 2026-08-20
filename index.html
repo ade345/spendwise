@@ -287,6 +287,7 @@
  
 <section id="money" class="tab-panel">
 
+  <!-- MONEY OVERVIEW + ADD ACCOUNT -->
   <div class="grid two">
 
     <!-- MONEY OVERVIEW -->
@@ -356,7 +357,6 @@
 
         <label>
           Account name
-
           <input
             id="accountName"
             type="text"
@@ -365,10 +365,8 @@
           >
         </label>
 
-
         <label>
           Account type
-
           <select id="accountType" required>
             <option value="bank">Bank account</option>
             <option value="debit_card">Debit card</option>
@@ -378,10 +376,8 @@
           </select>
         </label>
 
-
         <label>
           Current balance
-
           <input
             id="accountBalance"
             type="number"
@@ -392,10 +388,8 @@
           >
         </label>
 
-
         <label>
           Last 4 digits
-
           <input
             id="accountLastFour"
             type="text"
@@ -404,7 +398,6 @@
             placeholder="Optional"
           >
         </label>
-
 
         <button
           class="btn primary full"
@@ -424,10 +417,8 @@
   <article class="card">
 
     <div class="heading">
-
       <div>
         <h3>Your accounts</h3>
-
         <p class="muted">
           Your current balances and accounts.
         </p>
@@ -436,22 +427,242 @@
       <strong id="accountCount">
         0 accounts
       </strong>
-
     </div>
-
 
     <div
       id="accountsList"
       class="recommendations"
     >
-
       <div class="empty">
         No accounts added yet.
+      </div>
+    </div>
+
+  </article>
+
+
+  <!-- LOANS & DEBT -->
+  <article class="card">
+
+    <div class="heading">
+      <div>
+        <h3>Loans &amp; Debt</h3>
+        <p class="muted">
+          Track loans you are currently paying.
+        </p>
+      </div>
+
+      <strong id="loanCount">
+        0 loans
+      </strong>
+    </div>
+
+
+    <!-- LOAN SUMMARY -->
+    <div class="analysis-grid">
+
+      <div class="analysis-box">
+        <span class="analysis-label">Total loan balance</span>
+        <strong id="totalLoanBalance">€0.00</strong>
+        <small class="muted">
+          Amount still owed
+        </small>
+      </div>
+
+      <div class="analysis-box">
+        <span class="analysis-label">Monthly loan payments</span>
+        <strong id="totalMonthlyLoanPayment">€0.00</strong>
+        <small class="muted">
+          Required each month
+        </small>
+      </div>
+
+      <div class="analysis-box">
+        <span class="analysis-label">Average interest rate</span>
+        <strong id="averageLoanInterest">0%</strong>
+        <small class="muted">
+          Across active loans
+        </small>
+      </div>
+
+      <div class="analysis-box">
+        <span class="analysis-label">Potential extra payment</span>
+        <strong id="potentialExtraLoanPayment">€0.00</strong>
+        <small class="muted">
+          Based on recorded cash flow
+        </small>
       </div>
 
     </div>
 
+
+    <!-- ADD LOAN -->
+    <div class="card" style="margin-top:16px">
+
+      <div class="heading">
+        <div>
+          <h3>Add a loan</h3>
+          <p class="muted">
+            Enter the details of a loan you are paying.
+          </p>
+        </div>
+      </div>
+
+      <form id="loanForm" class="form-grid">
+
+        <label>
+          Loan name
+          <input
+            id="loanName"
+            type="text"
+            placeholder="e.g. Personal Loan"
+            required
+          >
+        </label>
+
+        <label>
+          Original amount
+          <input
+            id="loanOriginalAmount"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="5000"
+            required
+          >
+        </label>
+
+        <label>
+          Remaining balance
+          <input
+            id="loanRemainingBalance"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="3200"
+            required
+          >
+        </label>
+
+        <label>
+          Interest rate (%)
+          <input
+            id="loanInterestRate"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="8"
+          >
+        </label>
+
+        <label>
+          Monthly payment
+          <input
+            id="loanMonthlyPayment"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="180"
+            required
+          >
+        </label>
+
+        <label>
+          Payment due day
+          <input
+            id="loanDueDay"
+            type="number"
+            min="1"
+            max="31"
+            placeholder="15"
+          >
+        </label>
+
+        <label>
+          Start date
+          <input
+            id="loanStartDate"
+            type="date"
+          >
+        </label>
+
+        <label>
+          Notes
+          <input
+            id="loanNotes"
+            type="text"
+            maxlength="200"
+            placeholder="Optional"
+          >
+        </label>
+
+        <button
+          class="btn primary full"
+          type="submit"
+        >
+          Add loan
+        </button>
+
+      </form>
+
+    </div>
+
+
+    <!-- LOAN LIST -->
+    <div
+      id="loansList"
+      class="recommendations"
+      style="margin-top:16px"
+    >
+      <div class="empty">
+        No loans added yet.
+      </div>
+    </div>
+
   </article>
+
+
+  <!-- LOAN REPAYMENT PLAN -->
+  <article class="card">
+
+    <div class="heading">
+      <div>
+        <h3>Loan repayment plan</h3>
+        <p class="muted">
+          See what your income and spending may allow.
+        </p>
+      </div>
+    </div>
+
+    <div class="money-plan">
+
+      <div>
+        <span>Monthly income</span>
+        <strong id="loanPlanIncome">€0.00</strong>
+      </div>
+
+      <div>
+        <span>Essential spending</span>
+        <strong id="loanPlanEssentials">€0.00</strong>
+      </div>
+
+      <div>
+        <span>Required loan payments</span>
+        <strong id="loanPlanPayments">€0.00</strong>
+      </div>
+
+    </div>
+
+    <div
+      id="loanPlanMessage"
+      class="recommendation"
+      style="margin-top:16px"
+    >
+      Add your income, expenses and loan details to generate a repayment assessment.
+    </div>
+
+  </article>
+
 
 </section>
 
