@@ -691,6 +691,40 @@ async function updateLoanPlan() {
 
   const extraEl =
     $("potentialExtraLoanPayment");
+  const planGrid = document.querySelector(
+  "#loanPlanIncome"
+)?.closest(".analysis-grid");
+
+if (planGrid) {
+
+  if (!$("loanPlanDiscretionary")) {
+    const box = document.createElement("div");
+
+    box.className = "analysis-box";
+
+    box.innerHTML = `
+      <span class="analysis-label">Discretionary spending</span>
+      <strong id="loanPlanDiscretionary">€0.00</strong>
+      <small>Wants and non-essential spending</small>
+    `;
+
+    planGrid.appendChild(box);
+  }
+
+  if (!$("loanPlanBuffer")) {
+    const box = document.createElement("div");
+
+    box.className = "analysis-box";
+
+    box.innerHTML = `
+      <span class="analysis-label">Safety / savings buffer</span>
+      <strong id="loanPlanBuffer">€0.00</strong>
+      <small>20% of monthly income protected</small>
+    `;
+
+    planGrid.appendChild(box);
+  }
+}
 
   if (incomeEl) {
     incomeEl.textContent =
