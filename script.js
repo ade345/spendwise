@@ -117,9 +117,20 @@ document.getElementById("analysisGap").textContent = eur(gap);
   if(!expenses.some(t=>t.is_want))actions.push(["Mark wants","Flag purchases you could live without. This makes recommendations more personalized."]);
   actions.push(["Review weekly","Record transactions regularly so your recommendations stay current."]);
   $("actionPlan").innerHTML=actions.map(([a,b])=>`<div class="recommendation"><b>${a}</b><span>${b}</span></div>`).join("");
-  $("monthlyComparison").innerHTML=`<div class="recommendation"><b>August spending: ${eur(spent)}</b><span>Income: ${eur(income)} · Current capacity: ${eur(capacity)} · Target savings: ${eur(target)}</span></div>`;
-  $("#monthlyComparison").innerHTML=`...`;
+ const monthlyComparison = document.getElementById("monthlyComparison");
 
+if (monthlyComparison) {
+  monthlyComparison.innerHTML = `
+    <div class="recommendation">
+      <b>August spending: ${eur(spent)}</b>
+      <span>
+        Income: ${eur(income)} ·
+        Current capacity: ${eur(capacity)} ·
+        Target savings: ${eur(target)}
+      </span>
+    </div>
+  `;
+}
    const topCategory = rows[0] || ["", 0];
   const topOpportunity = opportunities[0] || null;
 
