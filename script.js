@@ -745,7 +745,15 @@ if (planGrid) {
     extraEl.textContent =
       money(potentialExtraPayment);
   }
+if ($("loanPlanDiscretionary")) {
+  $("loanPlanDiscretionary").textContent =
+    money(discretionarySpending);
+}
 
+if ($("loanPlanBuffer")) {
+  $("loanPlanBuffer").textContent =
+    money(savingsBuffer);
+}
 
   // ----------------------------------------------------------
   // REPAYMENT MESSAGE
