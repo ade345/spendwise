@@ -328,3 +328,378 @@ document.addEventListener("DOMContentLoaded",()=>{
     if(error)alert(error.message);else renderCloud();
   };
 });
+
+// ============================================================
+// LOANS & DEBT
+// ============================================================
+
+async function loadLoans() {
+  const user = await userOrNull();
+
+  if (!user) return;
+
+  const { data, error } = await window.spendwiseSupabase
+    .from("loans")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Unable to load loans:", error);
+    return;
+  }
+
+  const loans = data || [];
+
+  const loanCount = $("loanCount");
+  const loansList = $("loansList");
+  const totalLoanBalance = $("totalLoanBalance");
+  const totalMonthlyLoanPayment = $("totalMonthlyLoanPayment");
+  const averageLoanInterest = $("averageLoanInterest");
+
+  if (loanCount) {
+    loanCount.textContent =
+      `${loans.length} loan${loans.length === 1 ? "" : "s"}`;
+  }
+
+  const totalBalance = loans.reduce(
+    (sum, loan) => sum + Number(loan.remaining_balance || 0),
+    0
+  );
+
+  const totalPayment = loans.reduce(
+    (sum, loan) => sum + Number(loan.monthly_payment || 0),
+    0
+  );
+
+  const activeLoans = loans.filter(
+    loan => (loan.status || "active") === "active"
+  );
+
+  const averageInterest = activeLoans.length
+    ? activeLoans.reduce(
+        (sum, loan) => sum + Number(loan.interest_rate || 0),
+        0
+      ) / activeLoans.length
+    : 0;
+
+  if (totalLoanBalance) {
+    totalLoanBalance.textContent = money(totalBalance);
+  }
+
+  if (totalMonthlyLoanPayment) {
+    totalMonthlyLoanPayment.textContent = money(totalPayment);
+  }
+
+  if (averageLoanInterest) {
+    averageLoanInterest.textContent =
+      `${averageInterest.toFixed(2)}%`;
+  }
+
+  if (!loansList) return;
+
+  if (!loans.length) {
+    loansList.innerHTML = `
+      <div class="empty">
+        No loans added yet.
+      </div>
+    `;
+    return;
+  }
+
+  loansList.innerHTML = loans.map(loan => `
+    <div class="recommendation">
+
+      <b>${loan.name || "Unnamed loan"}</b>
+
+      <span>
+        Remaining balance:
+        <strong>${money(loan.remaining_balance)}</strong>
+        · Monthly payment:
+        <strong>${money(loan.monthly_payment)}</strong>
+        · Interest:
+        <strong>${Number(loan.interest_rate || 0).toFixed(2)}%</strong>
+        ${loan.due_day ? ` · Due day: ${loan.due_day}` : ""}
+      </span>
+
+      <button
+        class="delete-loan"
+        data-id="${loan.id}"
+        type="button"
+      >
+        Delete
+      </button>
+
+    </div>
+  `).join("");
+
+  document.querySelectorAll(".delete-loan").forEach(button => {
+
+    button.onclick = async () => {
+
+      const loanId = button.dataset.id;
+
+      if (!confirm("Delete this loan?")) return;
+
+      const { error } = await window.spendwiseSupabase
+        .from("loans")
+        .delete()
+        .eq("id", loanId)
+        .eq("user_id", user.id);
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      await loadLoans();
+      await updateLoanPlan();
+    };
+
+  });
+
+  await updateLoanPlan();
+}
+
+
+// ============================================================
+// ADD LOAN
+// ============================================================
+
+async function addLoan(event) {
+
+  event.preventDefault();
+
+  const user = await userOrNull();
+
+  if (!user) {
+    alert("Please sign in.");
+    return;
+  }
+
+  const name = $("loanName")?.value.trim();
+
+  const originalAmount =
+    Number($("loanOriginalAmount")?.value || 0);
+
+  const remainingBalance =
+    Number($("loanRemainingBalance")?.value || 0);
+
+  const interestRate =
+    Number($("loanInterestRate")?.value || 0);
+
+  const monthlyPayment =
+    Number($("loanMonthlyPayment")?.value || 0);
+
+  const dueDay =
+    Number($("loanDueDay")?.value || 0) || null;
+
+  const startDate =
+    $("loanStartDate")?.value || null;
+
+  const notes =
+    $("loanNotes")?.value.trim() || null;
+
+  if (!name) {
+    alert("Please enter the loan name.");
+    return;
+  }
+
+  if (originalAmount < 0 || remainingBalance < 0) {
+    alert("Loan amounts cannot be negative.");
+    return;
+  }
+
+  if (monthlyPayment < 0) {
+    alert("Monthly payment cannot be negative.");
+    return;
+  }
+
+  const { error } = await window.spendwiseSupabase
+    .from("loans")
+    .insert({
+      user_id: user.id,
+      name,
+      original_amount: originalAmount,
+      remaining_balance: remainingBalance,
+      interest_rate: interestRate,
+      monthly_payment: monthlyPayment,
+      due_day: dueDay,
+      start_date: startDate,
+      status: "active",
+      notes
+    });
+
+  if (error) {
+    console.error("Unable to save loan:", error);
+    alert(error.message);
+    return;
+  }
+
+  event.target.reset();
+
+  await loadLoans();
+}
+
+
+// ============================================================
+// LOAN REPAYMENT PLAN
+// ============================================================
+
+async function updateLoanPlan() {
+
+  const user = await userOrNull();
+
+  if (!user) return;
+
+  const tx = await monthTransactions();
+
+  const income = tx
+    .filter(t => t.type === "income")
+    .reduce(
+      (sum, t) => sum + Number(t.amount || 0),
+      0
+    );
+
+  const expenses = tx
+    .filter(t => t.type === "expense");
+
+  const spending = expenses.reduce(
+    (sum, t) => sum + Number(t.amount || 0),
+    0
+  );
+
+  const { data: loans, error } =
+    await window.spendwiseSupabase
+      .from("loans")
+      .select("remaining_balance,monthly_payment,status")
+      .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Unable to calculate loan plan:", error);
+    return;
+  }
+
+  const activeLoans = (loans || []).filter(
+    loan => (loan.status || "active") === "active"
+  );
+
+  const monthlyPayments = activeLoans.reduce(
+    (sum, loan) =>
+      sum + Number(loan.monthly_payment || 0),
+    0
+  );
+
+  /*
+    We don't recommend sending every remaining euro
+    toward debt.
+
+    SpendWise keeps a 20% income safety/savings target.
+  */
+
+  const savingsBuffer = income * 0.20;
+
+  const availableAfterSpending =
+    Math.max(0, income - spending);
+
+  const afterLoanPayments =
+    Math.max(0, availableAfterSpending - monthlyPayments);
+
+  const potentialExtraPayment =
+    Math.max(
+      0,
+      afterLoanPayments - savingsBuffer
+    );
+
+  $("loanPlanIncome").textContent =
+    money(income);
+
+  $("loanPlanEssentials").textContent =
+    money(spending);
+
+  $("loanPlanPayments").textContent =
+    money(monthlyPayments);
+
+  $("potentialExtraLoanPayment").textContent =
+    money(potentialExtraPayment);
+
+  const message = $("loanPlanMessage");
+
+  if (!message) return;
+
+  if (!income) {
+
+    message.innerHTML = `
+      <b>Add your income first.</b>
+      <span>
+        SpendWise needs your recorded income and spending
+        before estimating a safe additional loan payment.
+      </span>
+    `;
+
+    return;
+  }
+
+  if (!activeLoans.length) {
+
+    message.innerHTML = `
+      <b>No active loans.</b>
+      <span>
+        Add a loan above to create a repayment plan.
+      </span>
+    `;
+
+    return;
+  }
+
+  if (potentialExtraPayment > 0) {
+
+    message.innerHTML = `
+      <b>Potential extra payment: ${money(potentialExtraPayment)}</b>
+
+      <span>
+        After recorded spending, required loan payments
+        and a 20% income safety/savings buffer,
+        approximately ${money(potentialExtraPayment)}
+        may be available for an additional payment.
+      </span>
+    `;
+
+  } else {
+
+    message.innerHTML = `
+      <b>Keep the scheduled payment for now.</b>
+
+      <span>
+        Your current recorded income and spending do not
+        show enough additional capacity for an extra loan
+        payment while maintaining the safety buffer.
+      </span>
+    `;
+
+  }
+}
+
+
+// ============================================================
+// CONNECT LOAN FORM
+// ============================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const loanForm = $("loanForm");
+
+  if (loanForm) {
+    loanForm.addEventListener("submit", addLoan);
+  }
+
+  setTimeout(() => {
+
+    if (window.spendwiseUser) {
+      loadLoans();
+    }
+
+  }, 1500);
+
+});
+
