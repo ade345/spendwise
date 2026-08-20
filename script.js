@@ -310,7 +310,10 @@ window.forceCloudRefresh = async function(){ await renderCloud(); };
 document.addEventListener("DOMContentLoaded",()=>{
   $("month").value=today().slice(0,7);$("txDate").value=today();fillCategories();
   setTimeout(()=>{ if(window.spendwiseUser) renderCloud(); }, 1200);
-  $("month").onchange=renderCloud;
+  $("month").onchange = async () => {
+  await renderCloud();
+  await loadLoans();
+};
   $("txType").onchange=syncTransactionTypeUI;
   $("txForm").onsubmit=async e=>{
     e.preventDefault();const user=await userOrNull();if(!user)return alert("Please sign in.");
