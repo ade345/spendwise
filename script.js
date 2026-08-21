@@ -544,7 +544,189 @@ async function addLoan(event) {
   await loadLoans();
 }
 
+// ============================================================
+// LOAN PAYOFF CALCULATOR
+// ============================================================
 
+function calculateLoanPayoff(balance, annualRate, monthlyPayment) {
+  balance = Number(balance) || 0;
+  annualRate = Number(annualRate) || 0;
+  monthlyPayment = Number(monthlyPayment) || 0;
+
+  if (balance <= 0) {
+    return {
+      months: 0,
+      interest: 0,
+      possible: true
+    };
+  }
+
+  if (monthlyPayment <= 0) {
+    return {
+      months: 0,
+      interest: 0,
+      possible: false
+    };
+  }
+
+  const monthlyRate = annualRate / 100 / 12;
+
+  // No-interest loan
+  if (monthlyRate === 0) {
+    const months = Math.ceil(balance / monthlyPayment);
+    const totalPaid = Math.min(months * monthlyPayment, balance);
+
+    return {
+      months,
+      interest: Math.max(0, totalPaid - balance),
+      possible: true
+    };
+  }
+
+  // Payment must be greater than the monthly interest
+  const firstMonthInterest = balance * monthlyRate;
+
+  if (monthlyPayment <= firstMonthInterest) {
+    return {
+      months: 0,
+      interest: 0,
+      possible: false
+    };
+  }
+
+  let remaining = balance;
+  let totalInterest = 0;
+  let months = 0;
+
+  // Safety limit prevents an accidental infinite loop
+  while (remaining > 0.01 && months < 1200) {
+    const interest = remaining * monthlyRate;
+    const principal = monthlyPayment - interest;
+
+    if (principal <= 0) {
+      return {
+        months: 0,
+        interest: 0,
+        possible: false
+      };
+    }
+
+    totalInterest += interest;
+    remaining -= principal;
+    months++;
+
+    if (remaining < 0) remaining = 0;
+  }
+
+  return {
+    months,
+    interest: totalInterest,
+    possible: remaining <= 0.01
+  };
+}
+
+
+function updateLoanPayoffPlanner(loans, potentialExtraPayment) {
+
+  const currentPaymentEl = $("payoffCurrentPayment");
+  const acceleratedPaymentEl = $("payoffAcceleratedPayment");
+  const currentMonthsEl = $("payoffCurrentMonths");
+  const acceleratedMonthsEl = $("payoffAcceleratedMonths");
+  const currentInterestEl = $("payoffCurrentInterest");
+  const interestSavedEl = $("payoffInterestSaved");
+  const debtFreeDateEl = $("payoffDebtFreeDate");
+
+  if (!currentPaymentEl) return;
+
+  const activeLoans = (loans || []).filter(
+    loan => (loan.status || "active") === "active"
+  );
+
+  // No active loans
+  if (!activeLoans.length) {
+    currentPaymentEl.textContent = money(0);
+    acceleratedPaymentEl.textContent = money(0);
+    currentMonthsEl.textContent = "0 months";
+    acceleratedMonthsEl.textContent = "0 months";
+    currentInterestEl.textContent = money(0);
+    interestSavedEl.textContent = money(0);
+    debtFreeDateEl.textContent = "—";
+    return;
+  }
+
+  // For now the planner uses the first active loan.
+  // We will add a loan selector later if multiple loans are used.
+  const loan = activeLoans[0];
+
+  const balance = Number(loan.remaining_balance || 0);
+  const interestRate = Number(loan.interest_rate || 0);
+  const currentPayment = Number(loan.monthly_payment || 0);
+  const extraPayment = Math.max(0, Number(potentialExtraPayment || 0));
+
+  const acceleratedPayment = currentPayment + extraPayment;
+
+  const currentPlan = calculateLoanPayoff(
+    balance,
+    interestRate,
+    currentPayment
+  );
+
+  const acceleratedPlan = calculateLoanPayoff(
+    balance,
+    interestRate,
+    acceleratedPayment
+  );
+
+  currentPaymentEl.textContent = money(currentPayment);
+  acceleratedPaymentEl.textContent = money(acceleratedPayment);
+
+  currentMonthsEl.textContent =
+    currentPlan.possible
+      ? `${currentPlan.months} month${currentPlan.months === 1 ? "" : "s"}`
+      : "Payment too low";
+
+  acceleratedMonthsEl.textContent =
+    acceleratedPlan.possible
+      ? `${acceleratedPlan.months} month${acceleratedPlan.months === 1 ? "" : "s"}`
+      : "Payment too low";
+
+  currentInterestEl.textContent =
+    currentPlan.possible
+      ? money(currentPlan.interest)
+      : "—";
+
+  const interestSaved =
+    currentPlan.possible && acceleratedPlan.possible
+      ? Math.max(0, currentPlan.interest - acceleratedPlan.interest)
+      : 0;
+
+  interestSavedEl.textContent = money(interestSaved);
+
+  // Estimate debt-free date using the accelerated plan
+  if (acceleratedPlan.possible && acceleratedPlan.months > 0) {
+
+    const debtFreeDate = new Date();
+
+    debtFreeDate.setMonth(
+      debtFreeDate.getMonth() + acceleratedPlan.months
+    );
+
+    debtFreeDateEl.textContent =
+      debtFreeDate.toLocaleDateString("en-IE", {
+        month: "long",
+        year: "numeric"
+      });
+
+  } else if (balance <= 0) {
+
+    debtFreeDateEl.textContent = "Paid off";
+
+  } else {
+
+    debtFreeDateEl.textContent = "—";
+
+  }
+}
 // ============================================================
 // LOAN REPAYMENT PLAN
 // ============================================================
@@ -612,8 +794,8 @@ async function updateLoanPlan() {
     await window.spendwiseSupabase
       .from("loans")
       .select(
-        "remaining_balance,monthly_payment,status"
-      )
+  "remaining_balance,monthly_payment,interest_rate,status"
+)
       .eq("user_id", user.id);
 
   if (error) {
