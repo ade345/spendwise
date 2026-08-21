@@ -939,7 +939,10 @@ if ($("loanPlanBuffer")) {
   $("loanPlanBuffer").textContent =
     money(savingsBuffer);
 }
-
+updateLoanPayoffPlanner(
+  activeLoans,
+  potentialExtraPayment
+);
   // ----------------------------------------------------------
   // REPAYMENT MESSAGE
   // ----------------------------------------------------------
