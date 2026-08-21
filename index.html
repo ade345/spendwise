@@ -673,7 +673,90 @@
       Add your income, expenses and loan details to generate a repayment assessment.
     </div>
 
+  
+
   </article>
+
+<!-- LOAN PAYOFF PLANNER -->
+<article class="card">
+
+  <div class="heading">
+    <div>
+      <h3>Loan payoff planner</h3>
+      <p class="muted">
+        Compare your current payment with an accelerated payoff plan.
+      </p>
+    </div>
+  </div>
+
+  <div class="analysis-grid">
+
+    <div class="analysis-box">
+      <span class="analysis-label">
+        Current monthly payment
+      </span>
+      <strong id="payoffCurrentPayment">€0.00</strong>
+      <small>What you currently pay each month</small>
+    </div>
+
+    <div class="analysis-box">
+      <span class="analysis-label">
+        Accelerated monthly payment
+      </span>
+      <strong id="payoffAcceleratedPayment">€0.00</strong>
+      <small>Current payment plus potential extra payment</small>
+    </div>
+
+    <div class="analysis-box">
+      <span class="analysis-label">
+        Current payoff time
+      </span>
+      <strong id="payoffCurrentMonths">0 months</strong>
+      <small>Estimated time at your current payment</small>
+    </div>
+
+    <div class="analysis-box">
+      <span class="analysis-label">
+        Accelerated payoff time
+      </span>
+      <strong id="payoffAcceleratedMonths">0 months</strong>
+      <small>Estimated time with the extra payment</small>
+    </div>
+
+    <div class="analysis-box">
+      <span class="analysis-label">
+        Interest remaining
+      </span>
+      <strong id="payoffCurrentInterest">€0.00</strong>
+      <small>Estimated interest under current plan</small>
+    </div>
+
+    <div class="analysis-box">
+      <span class="analysis-label">
+        Interest saved
+      </span>
+      <strong id="payoffInterestSaved">€0.00</strong>
+      <small>Potential interest saved by paying faster</small>
+    </div>
+
+  </div>
+
+  <div class="insight-box" style="margin-top:16px;">
+
+    <strong>
+      Estimated debt-free date:
+      <span id="payoffDebtFreeDate">—</span>
+    </strong>
+
+    <p class="muted">
+      This is an estimate based on the remaining balance,
+      interest rate and payment amounts.
+    </p>
+
+  </div>
+
+</article>
+
 
 
 </section>
