@@ -66,6 +66,9 @@ const CUT_RATES={"Eating Out":0.25,"Shopping":0.20,"Entertainment":0.20,"Subscri
 const NEED_CATEGORIES=new Set(["Housing","Utilities","Food & Groceries","Transport","Health","Education","Family","Debt"]);
 function eur(v){return money(v);}
 function renderAnalysis(tx){
+    if (!document.getElementById("analysisTotalSpend")) {
+    return;
+  }
   const income=tx.filter(t=>t.type==="income").reduce((s,t)=>s+Number(t.amount||0),0);
   const expenses=tx.filter(t=>t.type==="expense");
   const spent=expenses.reduce((s,t)=>s+Number(t.amount||0),0);
@@ -283,6 +286,11 @@ async function renderMonthlySpendingChart() {
 }
 
   async function renderCloud() {
+      if (document.readyState === "loading") {
+    await new Promise(resolve => {
+      document.addEventListener("DOMContentLoaded", resolve, { once: true });
+    });
+  }
   const tx = await monthTransactions();
   renderAnalysis(tx);
   await renderMonthlySpendingChart();
