@@ -887,12 +887,25 @@ async function updateLoanPlan() {
 
   // Money available for an additional loan payment
   // while keeping the 20% safety/savings buffer.
-  const potentialExtraPayment =
-    Math.max(
-      0,
-      afterLoanPayments - savingsBuffer
-    );
+// Money available for an additional loan payment
+// while keeping the 20% safety/savings buffer.
+const availableExtraPayment =
+  Math.max(
+    0,
+    afterLoanPayments - savingsBuffer
+  );
 
+// Never recommend paying more than the remaining loan balance.
+const firstLoanBalance =
+  activeLoans.length
+    ? Number(activeLoans[0].remaining_balance || 0)
+    : 0;
+
+const potentialExtraPayment =
+  Math.min(
+    availableExtraPayment,
+    firstLoanBalance
+  );
 
   // ----------------------------------------------------------
   // UPDATE SCREEN
