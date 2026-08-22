@@ -671,7 +671,7 @@ function updateLoanPayoffPlanner(loans, potentialExtraPayment) {
   const currentPayment = Number(loan.monthly_payment || 0);
   const extraPayment = Math.max(0, Number(potentialExtraPayment || 0));
 
-  const acceleratedPayment = currentPayment + extraPayment;
+ 
 
  const acceleratedPayment = currentPayment + extraPayment;
 
