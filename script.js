@@ -718,6 +718,48 @@ acceleratedMonthsEl.textContent =
     : acceleratedPlan.possible
       ? `${acceleratedPlan.months} month${acceleratedPlan.months === 1 ? "" : "s"}`
       : "Payment too low";
+
+    currentInterestEl.textContent =
+    currentPlan.possible
+      ? money(currentPlan.interest)
+      : "—";
+
+  const interestSaved =
+    currentPlan.possible && acceleratedPlan.possible
+      ? Math.max(0, currentPlan.interest - acceleratedPlan.interest)
+      : 0;
+
+  interestSavedEl.textContent = money(interestSaved);
+
+  // Estimate debt-free date using the accelerated plan
+  if (payOffNow) {
+
+    debtFreeDateEl.textContent = "Pay off now";
+
+  } else if (acceleratedPlan.possible && acceleratedPlan.months > 0) {
+
+    const debtFreeDate = new Date();
+
+    debtFreeDate.setMonth(
+      debtFreeDate.getMonth() + acceleratedPlan.months
+    );
+
+    debtFreeDateEl.textContent =
+      debtFreeDate.toLocaleDateString("en-IE", {
+        month: "long",
+        year: "numeric"
+      });
+
+  } else if (balance <= 0) {
+
+    debtFreeDateEl.textContent = "Paid off";
+
+  } else {
+
+    debtFreeDateEl.textContent = "—";
+
+  }
+}
 // ============================================================
 // LOAN REPAYMENT PLAN
 // ============================================================
