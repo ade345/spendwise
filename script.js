@@ -633,6 +633,60 @@ function calculateLoanPayoff(balance, annualRate, monthlyPayment) {
   };
 }
 
+function calculateLoanPayoff(balance, annualRate, monthlyPayment) {
+  // existing code
+  ...
+}   // ← existing closing brace
+
+
+// ============================================================
+// DEBT STRATEGY
+// ============================================================
+
+function calculateDebtStrategies(loans) {
+
+  const activeLoans = (loans || [])
+    .filter(loan => (loan.status || "active") === "active")
+    .map(loan => ({
+      ...loan,
+      balance: Number(loan.remaining_balance || 0),
+      payment: Number(loan.monthly_payment || 0),
+      rate: Number(loan.interest_rate || 0)
+    }))
+    .filter(loan => loan.balance > 0);
+
+  if (!activeLoans.length) {
+    return {
+      snowball: [],
+      avalanche: [],
+      recommendation: "none"
+    };
+  }
+
+  // Smallest balance first
+  const snowball = [...activeLoans]
+    .sort((a, b) => a.balance - b.balance);
+
+  // Highest interest rate first
+  const avalanche = [...activeLoans]
+    .sort((a, b) => b.rate - a.rate);
+
+  return {
+    snowball,
+    avalanche,
+    recommendation:
+      avalanche.length > 1
+        ? "avalanche"
+        : "snowball"
+  };
+}
+
+
+// ============================================================
+// LOAN PAYOFF PLANNER
+// ============================================================
+
+function updateLoanPayoffPlanner(loans, potentialExtraPayment) {
 
 function updateLoanPayoffPlanner(loans, potentialExtraPayment) {
 
