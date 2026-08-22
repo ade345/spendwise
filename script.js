@@ -673,17 +673,32 @@ function updateLoanPayoffPlanner(loans, potentialExtraPayment) {
 
   const acceleratedPayment = currentPayment + extraPayment;
 
-  const currentPlan = calculateLoanPayoff(
-    balance,
-    interestRate,
-    currentPayment
-  );
+ const acceleratedPayment = currentPayment + extraPayment;
 
-  const acceleratedPlan = calculateLoanPayoff(
+const currentPlan = calculateLoanPayoff(
+  balance,
+  interestRate,
+  currentPayment
+);
+
+let acceleratedPlan;
+let payOffNow = false;
+
+if (balance > 0 && acceleratedPayment >= balance) {
+  payOffNow = true;
+
+  acceleratedPlan = {
+    months: 0,
+    interest: 0,
+    possible: true
+  };
+} else {
+  acceleratedPlan = calculateLoanPayoff(
     balance,
     interestRate,
     acceleratedPayment
   );
+}
 
   currentPaymentEl.textContent = money(currentPayment);
   acceleratedPaymentEl.textContent = money(acceleratedPayment);
