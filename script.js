@@ -1028,8 +1028,41 @@ updateLoanPayoffPlanner(
     return;
   }
 
+if (potentialExtraPayment > 0) {
 
-  if (potentialExtraPayment > 0) {
+  const availableCashAfterPayoff =
+    Math.max(
+      0,
+      availableExtraPayment - potentialExtraPayment
+    );
+
+  if (
+    activeLoans.length &&
+    potentialExtraPayment >=
+      Number(activeLoans[0].remaining_balance || 0)
+  ) {
+
+    message.innerHTML = `
+      <b>
+        Pay off this loan now: 
+        ${money(potentialExtraPayment)}
+      </b>
+
+      <span>
+        You have approximately
+        ${money(availableExtraPayment)}
+        available after your normal spending and
+        safety/savings buffer.
+        Paying
+        ${money(potentialExtraPayment)}
+        would clear this loan completely.
+        You would still have approximately
+        ${money(availableCashAfterPayoff)}
+        available for savings or another financial goal.
+      </span>
+    `;
+
+  } else {
 
     message.innerHTML = `
       <b>
@@ -1051,19 +1084,20 @@ updateLoanPayoffPlanner(
       </span>
     `;
 
-  } else {
-
-    message.innerHTML = `
-      <b>Keep the scheduled payment for now.</b>
-
-      <span>
-        Your current income and spending do not show
-        enough additional capacity for an extra loan
-        payment while maintaining the 20% safety/savings
-        buffer.
-      </span>
-    `;
   }
+
+} else {
+
+  message.innerHTML = `
+    <b>Keep the scheduled payment for now.</b>
+
+    <span>
+      Your current income and spending do not show
+      enough additional capacity for an extra loan
+      payment while maintaining the 20% safety/savings
+      buffer.
+    </span>
+  `;
 }
 
 // ============================================================
